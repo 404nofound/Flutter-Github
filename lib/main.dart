@@ -1,5 +1,3 @@
-
-
 import 'package:flutter/material.dart';
 import 'package:english_words/english_words.dart';
 
@@ -48,6 +46,9 @@ class MyApp extends StatelessWidget {
         "fixed_grid_view":(context) => GridViewFixedCrossAxisCountTestRoute(),
         "max_grid_view":(context) => GridViewMaxCrossAxisExtentTestRoute(),
         "infinite_grid_view":(context) => InfiniteGridView(),
+        "custom_scroll_view":(context) => CustomScrollViewTestRoute(),
+        "scroll_controller":(context) => ScrollControllerTestRoute(),
+        "scroll_notification":(context) => ScrollNotificationTestRoute(),
       },
 
     );
@@ -454,6 +455,27 @@ class _SecondPage extends State<SecondPage> {
               textColor: Colors.blue,
               onPressed: () {
                 Navigator.of(context).pushNamed("infinite_grid_view");
+              },
+            ),
+            FlatButton(
+              child: Text("CustomScrollView"),
+              textColor: Colors.blue,
+              onPressed: () {
+                Navigator.of(context).pushNamed("custom_scroll_view");
+              },
+            ),
+            FlatButton(
+              child: Text("ScrollController"),
+              textColor: Colors.blue,
+              onPressed: () {
+                Navigator.of(context).pushNamed("scroll_controller");
+              },
+            ),
+            FlatButton(
+              child: Text("ScrollNotification"),
+              textColor: Colors.blue,
+              onPressed: () {
+                Navigator.of(context).pushNamed("scroll_notification");
               },
             ),
           ],
@@ -2027,5 +2049,174 @@ class _InfiniteGridViewState extends State<InfiniteGridView> {
         ]);
       });
     });
+  }
+}
+
+class CustomScrollViewTestRoute extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    // TODO: implement build
+    return Material(
+      child: CustomScrollView(
+        slivers: <Widget>[
+          SliverAppBar(
+            pinned: true,
+            expandedHeight: 250.0,
+            flexibleSpace: FlexibleSpaceBar(
+              title: Text("Demo"),
+              background: Image(
+                image: NetworkImage(
+                    "https://avatars2.githubusercontent.com/u/20411648?s=460&v=4"),
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
+          SliverPadding(
+            padding: EdgeInsets.all(8.0),
+            sliver: SliverGrid(
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                mainAxisSpacing: 10.0,
+                crossAxisSpacing: 10.0,
+                childAspectRatio: 4.0,
+              ),
+              delegate: SliverChildBuilderDelegate(
+                (BuildContext context, int index) {
+                  return new Container(
+                    alignment: Alignment.center,
+                    color: Colors.cyan[100 * (index % 9)],
+                    child: new Text('grid item $index'),
+                  );
+                },
+                childCount: 20,
+              ),
+            ),
+          ),
+          SliverFixedExtentList(
+            itemExtent: 50.0,
+            delegate: SliverChildBuilderDelegate(
+                (BuildContext context, int index) {
+                  return Container(
+                    alignment: Alignment.center,
+                    color: Colors.lightBlue[100 * (index % 9)],
+                    child: Text('list item $index'),
+                  );
+                },
+              childCount: 50
+            ),
+          )
+        ],
+      ),
+    );
+  }
+}
+
+class ScrollControllerTestRoute extends StatefulWidget {
+  @override
+  ScrollControllerTestRouteState createState() => new ScrollControllerTestRouteState();
+}
+
+class ScrollControllerTestRouteState extends State<ScrollControllerTestRoute> {
+  ScrollController _controller = new ScrollController();
+  bool showToTopBtn = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller.addListener(() {
+      print(_controller.offset);
+      if (_controller.offset < 1000 && showToTopBtn) {
+        setState(() {
+          showToTopBtn = false;
+        });
+      } else if (_controller.offset >= 1000 && showToTopBtn == false) {
+        setState(() {
+          showToTopBtn = true;
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // TODO: implement build
+    return Scaffold(
+      appBar: AppBar(title: Text("滚动控制")),
+      body: Scrollbar(
+        child: ListView.builder(
+            itemCount: 100,
+            itemExtent: 50.0,
+            controller: _controller,
+            itemBuilder: (context, index) {
+              return ListTile(title: Text("$index"));
+            }
+        ),
+      ),
+      floatingActionButton: !showToTopBtn ? null : FloatingActionButton(
+        child: Icon(Icons.arrow_upward),
+        onPressed: () {
+          _controller.animateTo(.0,
+              duration: Duration(milliseconds: 200),
+              curve: Curves.ease
+          );
+        },
+      ),
+    );
+  }
+}
+
+class ScrollNotificationTestRoute extends StatefulWidget {
+  @override
+  _ScrollNotificationTestRouteState createState() =>
+      new _ScrollNotificationTestRouteState();
+}
+
+class _ScrollNotificationTestRouteState
+    extends State<ScrollNotificationTestRoute> {
+  String _progress = "0%"; //保存进度百分比
+
+  @override
+  Widget build(BuildContext context) {
+
+    return Scaffold(
+      appBar: AppBar(title: Text("滚动控制")),
+      body: Scrollbar(
+        child: NotificationListener<ScrollNotification>(
+          onNotification: (ScrollNotification notification) {
+            double progress = notification.metrics.pixels /
+                notification.metrics.maxScrollExtent;
+            //重新构建
+            setState(() {
+              _progress = "${(progress * 100).toInt()}%";
+            });
+            print("BottomEdge: ${notification.metrics.extentAfter == 0}");
+            return true; //放开此行注释后，进度条将失效
+          },
+          child: Stack(
+            alignment: Alignment.center,
+            children: <Widget>[
+              ListView.builder(
+                  itemCount: 100,
+                  itemExtent: 50.0,
+                  itemBuilder: (context, index) {
+                    return ListTile(title: Text("$index"));
+                  }
+              ),
+              CircleAvatar(  //显示进度百分比
+                radius: 30.0,
+                child: Text(_progress),
+                backgroundColor: Colors.black54,
+              )
+            ],
+          ),
+        ),
+      )
+    );
   }
 }
