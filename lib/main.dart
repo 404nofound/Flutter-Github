@@ -41,6 +41,13 @@ class MyApp extends StatelessWidget {
         "stack_positioned":(context) => StackPositionedTestRoute(),
         "padding":(context) => PaddingTestRoute(),
         "decorated_box":(context) => DecoratedBoxTestRoute(),
+        "single_child_scroll_view":(context) => SingleChildScrollViewTestRoute(),
+        "list_view_builder":(context) => ListViewBuilderTestRoute(),
+        "list_view_separated":(context) => ListViewSeparatedTestRoute(),
+        "infinite_list_view":(context) => InfiniteListViewTestRoute(),
+        "fixed_grid_view":(context) => GridViewFixedCrossAxisCountTestRoute(),
+        "max_grid_view":(context) => GridViewMaxCrossAxisExtentTestRoute(),
+        "infinite_grid_view":(context) => InfiniteGridView(),
       },
 
     );
@@ -98,7 +105,7 @@ class _ScaffoldRouteState extends State<ScaffoldRoute>
           ),
           Container(
             alignment: Alignment.center,
-            child: Text("B", textScaleFactor: 5),
+            child: SecondPage(),
           ),
           Container(
             alignment: Alignment.center,
@@ -383,6 +390,79 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 }
+
+class SecondPage extends StatefulWidget {
+  SecondPage({Key key}) : super(key: key);
+
+  @override
+  _SecondPage createState() => _SecondPage();
+}
+
+class _SecondPage extends State<SecondPage> {
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: SingleChildScrollView(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            FlatButton(
+              child: Text("SingleChildScrollView"),
+              textColor: Colors.blue,
+              onPressed: () {
+                Navigator.of(context).pushNamed("single_child_scroll_view");
+              },
+            ),
+            FlatButton(
+              child: Text("ListView.builder"),
+              textColor: Colors.blue,
+              onPressed: () {
+                Navigator.of(context).pushNamed("list_view_builder");
+              },
+            ),
+            FlatButton(
+              child: Text("ListView.separated"),
+              textColor: Colors.blue,
+              onPressed: () {
+                Navigator.of(context).pushNamed("list_view_separated");
+              },
+            ),
+            FlatButton(
+              child: Text("无限上拉列表"),
+              textColor: Colors.blue,
+              onPressed: () {
+                Navigator.of(context).pushNamed("infinite_list_view");
+              },
+            ),
+            FlatButton(
+              child: Text("纵轴固定数量GridView"),
+              textColor: Colors.blue,
+              onPressed: () {
+                Navigator.of(context).pushNamed("fixed_grid_view");
+              },
+            ),
+            FlatButton(
+              child: Text("纵轴子元素长度固定GridView"),
+              textColor: Colors.blue,
+              onPressed: () {
+                Navigator.of(context).pushNamed("max_grid_view");
+              },
+            ),
+            FlatButton(
+              child: Text("无限上拉GridView"),
+              textColor: Colors.blue,
+              onPressed: () {
+                Navigator.of(context).pushNamed("infinite_grid_view");
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 
 class RoutePage1 extends StatelessWidget {
 
@@ -1675,5 +1755,277 @@ class _SwitchAndCheckBoxTestRouteState extends State<SwitchAndCheckBoxTestRoute>
         )
       ],
     );
+  }
+}
+
+class SingleChildScrollViewTestRoute extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    // TODO: implement build
+    String str = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("Single Child Scroll View"),
+      ),
+      body: Scrollbar(
+        child: SingleChildScrollView(
+          padding: EdgeInsets.all(16.0),
+          child: Center(
+            child: Column(
+              children: str.split("")
+                  .map((c) => Text(c, textScaleFactor: 2.0))
+                  .toList(),
+            ),
+          ),
+        ),
+      )
+    );
+  }
+}
+
+class ListViewBuilderTestRoute extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    // TODO: implement build
+    return Scaffold(
+        appBar: AppBar(
+          title: Text("ListView"),
+        ),
+        body: Column(
+          children: <Widget>[
+            ListTile(title: Text("商品列表")),
+            Expanded(
+              child: ListView.builder(
+                  itemCount: 100,
+                  itemExtent: 50.0,
+                  itemBuilder: (BuildContext context, int index) {
+                    return ListTile(title: Text("$index"));
+                  }
+              ),
+            ),
+          ],
+        )
+    );
+  }
+}
+
+class ListViewSeparatedTestRoute extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    // TODO: implement build
+
+    Widget divider1 = Divider(color: Colors.blue);
+    Widget divider2 = Divider(color: Colors.green);
+    return Scaffold(
+        appBar: AppBar(
+          title: Text("ListView.separated"),
+        ),
+        body: ListView.separated(
+
+            itemCount: 100,
+            itemBuilder: (BuildContext context, int index) {
+              return ListTile(title: Text("$index"));
+            },
+            separatorBuilder: (BuildContext context, int index) {
+              return index % 2 == 0 ? divider1 : divider2;
+            },
+        )
+    );
+  }
+}
+
+class InfiniteListViewTestRoute extends StatefulWidget {
+  @override
+  _InfiniteListViewState createState() => new _InfiniteListViewState();
+}
+
+class _InfiniteListViewState extends State<InfiniteListViewTestRoute> {
+  static const loadingTag = "##loading##";
+  var _words = <String>[loadingTag];
+
+  @override
+  void initState() {
+    super.initState();
+    _retrieveData();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // TODO: implement build
+
+    return Scaffold(
+        appBar: AppBar(
+          title: Text("ListView.separated"),
+        ),
+        body: ListView.separated(
+          itemCount: _words.length,
+          itemBuilder: (context, index) {
+            if (_words[index] == loadingTag) {
+              if (_words.length - 1 < 100) {
+                _retrieveData();
+                return Container(
+                  padding: const EdgeInsets.all(16.0),
+                  alignment: Alignment.center,
+                  child: SizedBox(
+                    width: 24.0,
+                    height: 24.0,
+                    child: CircularProgressIndicator(strokeWidth: 2.0),
+                  ),
+                );
+              } else {
+                return Container(
+                  padding: EdgeInsets.all(16.0),
+                  alignment: Alignment.center,
+                  child: Text("没有更多了", style: TextStyle(color: Colors.grey)),
+                );
+              }
+            }
+            return ListTile(title: Text(_words[index]));
+          },
+          separatorBuilder: (context, index) => Divider(height: .0),
+        )
+    );
+  }
+
+  void _retrieveData() {
+    Future.delayed(Duration(seconds: 2)).then((e) {
+      _words.insertAll(_words.length - 1,
+          generateWordPairs().take(20).map((e) => e.asPascalCase).toList()
+      );
+      setState(() {
+
+      });
+    });
+  }
+}
+
+class GridViewFixedCrossAxisCountTestRoute extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    // TODO: implement build
+
+    return Scaffold(
+        appBar: AppBar(
+          title: Text("纵轴固定数量的GridView"),
+        ),
+        body: GridView(
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 3,
+            childAspectRatio: 1.0
+          ),
+          children: <Widget>[
+            Icon(Icons.ac_unit),
+            Icon(Icons.airport_shuttle),
+            Icon(Icons.all_inclusive),
+            Icon(Icons.beach_access),
+            Icon(Icons.cake),
+            Icon(Icons.free_breakfast)
+          ],
+        )
+    );
+
+    /*GridView.count(
+      crossAxisCount: 3,
+      childAspectRatio: 1.0,
+      children: <Widget>[
+        Icon(Icons.ac_unit),
+        Icon(Icons.airport_shuttle),
+        Icon(Icons.all_inclusive),
+        Icon(Icons.beach_access),
+        Icon(Icons.cake),
+        Icon(Icons.free_breakfast),
+      ],
+    );*/
+  }
+}
+
+class GridViewMaxCrossAxisExtentTestRoute extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    // TODO: implement build
+
+    return Scaffold(
+        appBar: AppBar(
+          title: Text("纵轴子元素为固定长度的GridView"),
+        ),
+        body: GridView(
+          gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+              maxCrossAxisExtent: 120.0,
+              childAspectRatio: 2.0
+          ),
+          children: <Widget>[
+            Icon(Icons.ac_unit),
+            Icon(Icons.airport_shuttle),
+            Icon(Icons.all_inclusive),
+            Icon(Icons.beach_access),
+            Icon(Icons.cake),
+            Icon(Icons.free_breakfast)
+          ],
+        )
+    );
+
+    /*GridView.extent(
+      maxCrossAxisExtent: 120.0,
+      childAspectRatio: 2.0,
+      children: <Widget>[
+        Icon(Icons.ac_unit),
+        Icon(Icons.airport_shuttle),
+        Icon(Icons.all_inclusive),
+        Icon(Icons.beach_access),
+        Icon(Icons.cake),
+        Icon(Icons.free_breakfast),
+      ],
+    );*/
+  }
+}
+
+class InfiniteGridView extends StatefulWidget {
+  @override
+  _InfiniteGridViewState createState() => new _InfiniteGridViewState();
+}
+
+class _InfiniteGridViewState extends State<InfiniteGridView> {
+
+  List<IconData> _icons = [];
+
+  @override
+  void initState() {
+    _retrieveIcons();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+
+    return Scaffold(
+        appBar: AppBar(
+          title: Text("无限上拉GridView"),
+        ),
+        body: GridView.builder(
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 3,
+                childAspectRatio: 1.0
+            ),
+            itemCount: _icons.length,
+            itemBuilder: (context, index) {
+              if (index == _icons.length - 1 && _icons.length < 200) {
+                _retrieveIcons();
+              }
+              return Icon(_icons[index]);
+            })
+    );
+  }
+  
+  void _retrieveIcons() {
+    Future.delayed(Duration(milliseconds: 200)).then((e) {
+      setState(() {
+        _icons.addAll([
+          Icons.ac_unit,
+          Icons.airport_shuttle,
+          Icons.all_inclusive,
+          Icons.beach_access, Icons.cake,
+          Icons.free_breakfast
+        ]);
+      });
+    });
   }
 }
