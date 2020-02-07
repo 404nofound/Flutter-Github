@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:english_words/english_words.dart';
 
@@ -49,6 +50,8 @@ class MyApp extends StatelessWidget {
         "custom_scroll_view":(context) => CustomScrollViewTestRoute(),
         "scroll_controller":(context) => ScrollControllerTestRoute(),
         "scroll_notification":(context) => ScrollNotificationTestRoute(),
+        "will_pop_scope":(context) => WillPopScopeTestRoute(),
+        "inherited_widget":(context) => InheritedWidgetTestRoute(),
       },
 
     );
@@ -110,7 +113,7 @@ class _ScaffoldRouteState extends State<ScaffoldRoute>
           ),
           Container(
             alignment: Alignment.center,
-            child: Text("C", textScaleFactor: 5),
+            child: ThirdPage(),
           ),
         ],
       ),
@@ -255,6 +258,7 @@ class _MyHomePageState extends State<MyHomePage> {
           // horizontal).
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
+            WillPopScopeTestRoute(),
             Text(
               'You have pushed the button this many times:',
             ),
@@ -485,6 +489,35 @@ class _SecondPage extends State<SecondPage> {
   }
 }
 
+class ThirdPage extends StatefulWidget {
+  ThirdPage({Key key}) : super(key: key);
+
+  @override
+  _ThirdPage createState() => _ThirdPage();
+}
+
+class _ThirdPage extends State<ThirdPage> {
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Scrollbar(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            FlatButton(
+              child: Text("InheritedWidget"),
+              textColor: Colors.blue,
+              onPressed: () {
+                Navigator.of(context).pushNamed("inherited_widget");
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
 
 class RoutePage1 extends StatelessWidget {
 
@@ -2217,6 +2250,108 @@ class _ScrollNotificationTestRouteState
           ),
         ),
       )
+    );
+  }
+}
+
+class WillPopScopeTestRoute extends StatefulWidget {
+  @override
+  WillPopScopeTestRouteState createState() => new WillPopScopeTestRouteState();
+}
+
+class WillPopScopeTestRouteState extends State<WillPopScopeTestRoute> {
+  DateTime _lastPressedAt;
+
+  @override
+  Widget build(BuildContext context) {
+    // TODO: implement build
+    return WillPopScope(
+      onWillPop: () async {
+        if (_lastPressedAt == null || DateTime.now().difference(_lastPressedAt) > Duration(seconds: 1)) {
+          _lastPressedAt = DateTime.now();
+          return false;
+        }
+        return true;
+      },
+      child: Container(
+        alignment: Alignment.center,
+        child: Text("1秒内连续按两次返回键退出"),
+      ),
+    );
+  }
+}
+
+class ShareDataWidget extends InheritedWidget {
+  ShareDataWidget({
+    @required this.data,
+    Widget child
+  }) : super(child: child);
+
+  final int data;
+
+  static ShareDataWidget of(BuildContext context) {
+    return context.dependOnInheritedWidgetOfExactType();
+  }
+
+  @override
+  bool updateShouldNotify(ShareDataWidget old) {
+    return old.data != data;
+  }
+}
+
+class _TestWidget extends StatefulWidget {
+  @override
+  _TestWidgetState createState() => new _TestWidgetState();
+}
+
+class _TestWidgetState extends State<_TestWidget> {
+  @override
+  Widget build(BuildContext context) {
+    // TODO: implement build
+    return Text(ShareDataWidget
+          .of(context)
+          .data
+          .toString());
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    print("Dependencies change");
+  }
+}
+
+class InheritedWidgetTestRoute extends StatefulWidget {
+  @override
+  _InheritedWidgetTestRouteState createState() => new _InheritedWidgetTestRouteState();
+}
+
+class _InheritedWidgetTestRouteState extends State<InheritedWidgetTestRoute> {
+  int count = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    // TODO: implement build
+    return Scaffold(
+      appBar: AppBar(title: Text("InheritedWidget")),
+      body: Center(
+        child: ShareDataWidget(
+          data: count,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Padding(
+                padding: EdgeInsets.only(bottom: 20.0),
+                child: _TestWidget(),
+              ),
+              RaisedButton(
+                child: Text("Increment"),
+                onPressed: () => setState(() => ++count),
+              )
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
