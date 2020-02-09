@@ -52,6 +52,11 @@ class MyApp extends StatelessWidget {
         "scroll_notification":(context) => ScrollNotificationTestRoute(),
         "will_pop_scope":(context) => WillPopScopeTestRoute(),
         "inherited_widget":(context) => InheritedWidgetTestRoute(),
+        "nav_bar":(context) => NavBarTestRoute(),
+        "theme_test_route":(context) => ThemeTestRoute(),
+        "future_builder":(context) => FutureBuilderTestRoute(),
+        "stream_builder":(context) => StreamBuilderTestRoute(),
+        "dialog_page":(context) => DialogPage(),
       },
 
     );
@@ -510,6 +515,41 @@ class _ThirdPage extends State<ThirdPage> {
               textColor: Colors.blue,
               onPressed: () {
                 Navigator.of(context).pushNamed("inherited_widget");
+              },
+            ),
+            FlatButton(
+              child: Text("Nav Bar"),
+              textColor: Colors.blue,
+              onPressed: () {
+                Navigator.of(context).pushNamed("nav_bar");
+              },
+            ),
+            FlatButton(
+              child: Text("InheritedWidget"),
+              textColor: Colors.blue,
+              onPressed: () {
+                Navigator.of(context).pushNamed("theme_test_route");
+              },
+            ),
+            FlatButton(
+              child: Text("Future Builder"),
+              textColor: Colors.blue,
+              onPressed: () {
+                Navigator.of(context).pushNamed("future_builder");
+              },
+            ),
+            FlatButton(
+              child: Text("Stream Builder"),
+              textColor: Colors.blue,
+              onPressed: () {
+                Navigator.of(context).pushNamed("stream_builder");
+              },
+            ),
+            FlatButton(
+              child: Text("Dialogs"),
+              textColor: Colors.blue,
+              onPressed: () {
+                Navigator.of(context).pushNamed("dialog_page");
               },
             ),
           ],
@@ -2353,5 +2393,291 @@ class _InheritedWidgetTestRouteState extends State<InheritedWidgetTestRoute> {
         ),
       ),
     );
+  }
+}
+
+class NavBarTestRoute extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    // TODO: implement build
+    return Scaffold(
+        appBar: AppBar(
+          title: Text("Nav Bar"),
+        ),
+        body: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            NavBar(color: Colors.blue, title: "标题"),
+            NavBar(color: Colors.white, title: "标题"),
+          ],
+        )
+    );
+  }
+}
+
+class NavBar extends StatelessWidget {
+  final String title;
+  final Color color;
+
+  NavBar({Key key, this.color, this.title});
+
+  @override
+  Widget build(BuildContext context) {
+    // TODO: implement build
+    return Container(
+      constraints: BoxConstraints(
+        minHeight: 52,
+        minWidth: double.infinity,
+      ),
+      decoration: BoxDecoration(
+        color: color,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black26,
+            offset: Offset(0, 3),
+            blurRadius: 3,
+          )
+        ]
+      ),
+      child: Text(
+        title,
+        style: TextStyle(
+          fontWeight: FontWeight.bold,
+          color: color.computeLuminance() < 0.5 ? Colors.white : Colors.black,
+        ),
+      ),
+      alignment: Alignment.center,
+    );
+  }
+}
+
+class ThemeTestRoute extends StatefulWidget {
+  @override
+  _ThemeTestRouteState createState() => new _ThemeTestRouteState();
+}
+
+class _ThemeTestRouteState extends State<ThemeTestRoute> {
+  Color _themeColor = Colors.teal;
+
+  @override
+  Widget build(BuildContext context) {
+    // TODO: implement build
+    ThemeData themeData = Theme.of(context);
+    return Theme(
+      data: ThemeData(
+        primarySwatch: _themeColor,
+        iconTheme: IconThemeData(color: _themeColor)
+      ),
+      child: Scaffold(
+        appBar: AppBar(title: Text("主题测试")),
+        body: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Icon(Icons.favorite),
+                Icon(Icons.airport_shuttle),
+                Text(" 颜色跟随主题")
+              ],
+            ),
+            Theme(
+              data: themeData.copyWith(
+                iconTheme: themeData.iconTheme.copyWith(
+                  color: Colors.black
+                )
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  Icon(Icons.favorite),
+                  Icon(Icons.airport_shuttle),
+                  Text(" 颜色固定黑色")
+                ],
+              ),
+            )
+          ],
+        ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () =>
+              setState(() =>
+                _themeColor =
+                    _themeColor == Colors.teal ? Colors.blue : Colors.teal
+              ),
+          child: Icon(Icons.palette),
+        ),
+      ),
+    );
+  }
+}
+
+Future<String> mockNetworkData() async {
+  return Future.delayed(Duration(seconds: 2), () => "我是从互联网上获取的数据");
+}
+
+class FutureBuilderTestRoute extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    // TODO: implement build
+
+    return Scaffold(
+        appBar: AppBar(
+          title: Text("Future Builder"),
+        ),
+        body: Center(
+          child: FutureBuilder<String>(
+            future: mockNetworkData(),
+            builder: (BuildContext context, AsyncSnapshot snapshot) {
+              if (snapshot.connectionState == ConnectionState.done) {
+                if (snapshot.hasError) {
+                  return Text("Error: ${snapshot.error}");
+                } else {
+                  return Text("Contents: ${snapshot.data}");
+                }
+              } else {
+                return CircularProgressIndicator();
+              }
+            },
+          ),
+        )
+    );
+  }
+}
+
+Stream<int> counter() {
+  return Stream.periodic(Duration(seconds: 1), (i) {
+    return i;
+  });
+}
+
+class StreamBuilderTestRoute extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    // TODO: implement build
+
+    return Scaffold(
+        appBar: AppBar(
+          title: Text("Stream Builder"),
+        ),
+        body: Center(
+          child: StreamBuilder<int>(
+            stream: counter(),
+            builder: (BuildContext context, AsyncSnapshot<int> snapshot) {
+              if (snapshot.hasError) {
+                return Text("Error: ${snapshot.error}");
+              }
+              switch (snapshot.connectionState) {
+                case ConnectionState.none:
+                  return Text('没有Stream');
+                case ConnectionState.waiting:
+                  return Text('等待数据...');
+                case ConnectionState.active:
+                  return Text('active: ${snapshot.data}');
+                case ConnectionState.done:
+                  return Text('Stream已关闭');
+              }
+              return null;
+            },
+          ),
+        )
+    );
+  }
+}
+
+class DialogPage extends StatelessWidget {
+
+  @override
+  Widget build(BuildContext context) {
+
+    return Scaffold(
+        appBar: AppBar(
+          title: Text("Stream Builder"),
+        ),
+        body: Column(
+          children: <Widget>[
+            RaisedButton(
+              child: Text("对话框"),
+              onPressed: () async {
+                //弹出对话框并等待其关闭
+                bool delete = await showDeleteConfirmDialog1(context);
+                if (delete == null) {
+                  print("取消删除");
+                } else {
+                  print("已确认删除");
+                  //... 删除文件
+                }
+              },
+            ),
+            RaisedButton(
+              child: Text("选择对话框"),
+              onPressed: () {
+                changeLanguage(context);
+              },
+            ),
+          ],
+        )
+    );
+
+
+  }
+}
+
+Future<bool> showDeleteConfirmDialog1(BuildContext context) {
+  return showDialog<bool>(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        title: Text("提示"),
+        content: Text("您确定要删除当前文件吗?"),
+        actions: <Widget>[
+          FlatButton(
+            child: Text("取消"),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+          FlatButton(
+            child: Text("删除"),
+            onPressed: () {
+              //关闭对话框并返回true
+              Navigator.of(context).pop(true);
+            },
+          ),
+        ],
+      );
+    }
+  );
+}
+
+Future<void> changeLanguage(BuildContext context) async {
+  int i = await showDialog<int>(
+    context: context,
+    builder: (BuildContext context) {
+      return SimpleDialog(
+        title: Text("请选择语言"),
+        children: <Widget>[
+          SimpleDialogOption(
+            onPressed: () {
+              Navigator.pop(context, 1);
+            },
+            child: Padding(
+              padding: EdgeInsets.symmetric(vertical: 6),
+              child: Text("中文简体"),
+            ),
+          ),
+          SimpleDialogOption(
+            onPressed: () {
+              Navigator.pop(context, 2);
+            },
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 6),
+              child: const Text('美国英语'),
+            ),
+          ),
+        ],
+      );
+    }
+  );
+
+  if (i != null) {
+    print("选择了：${i == 1 ? "中文简体" : "美国英语"}");
   }
 }
