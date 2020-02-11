@@ -1,4 +1,7 @@
 
+
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:english_words/english_words.dart';
 
@@ -57,6 +60,13 @@ class MyApp extends StatelessWidget {
         "future_builder":(context) => FutureBuilderTestRoute(),
         "stream_builder":(context) => StreamBuilderTestRoute(),
         "dialog_page":(context) => DialogPage(),
+        "gesture_detector": (context) => GestureDetectorTestRoute(),
+        "drag_test":(context) => _Drag(),
+        "drag_vertical_test":(context) => _DragVertical(),
+        "scale_test":(context) => _ScaleTestRoute(),
+        "gesture_recognizer":(context) => _GestureRecognizerTestRoute(),
+        "both_direction":(context) => BothDirectionTestRoute(),
+        "gesture_conflict":(context) => GestureConflictTestRoute(),
       },
 
     );
@@ -550,6 +560,55 @@ class _ThirdPage extends State<ThirdPage> {
               textColor: Colors.blue,
               onPressed: () {
                 Navigator.of(context).pushNamed("dialog_page");
+              },
+            ),
+            FlatButton(
+              child: Text("Gesture Detector"),
+              textColor: Colors.blue,
+              onPressed: () {
+                Navigator.of(context).pushNamed("gesture_detector");
+              },
+            ),
+            FlatButton(
+              child: Text("拖动 任意方向"),
+              textColor: Colors.blue,
+              onPressed: () {
+                Navigator.of(context).pushNamed("drag_test");
+              },
+            ),
+            FlatButton(
+              child: Text("拖动 单一方向"),
+              textColor: Colors.blue,
+              onPressed: () {
+                Navigator.of(context).pushNamed("drag_vertical_test");
+              },
+            ),
+            FlatButton(
+              child: Text("缩放操作"),
+              textColor: Colors.blue,
+              onPressed: () {
+                Navigator.of(context).pushNamed("scale_test");
+              },
+            ),
+            FlatButton(
+              child: Text("手势识别器"),
+              textColor: Colors.blue,
+              onPressed: () {
+                Navigator.of(context).pushNamed("gesture_recognizer");
+              },
+            ),
+            FlatButton(
+              child: Text("手势竞争"),
+              textColor: Colors.blue,
+              onPressed: () {
+                Navigator.of(context).pushNamed("both_direction");
+              },
+            ),
+            FlatButton(
+              child: Text("手势冲突"),
+              textColor: Colors.blue,
+              onPressed: () {
+                Navigator.of(context).pushNamed("gesture_conflict");
               },
             ),
           ],
@@ -2647,6 +2706,55 @@ class DialogPage extends StatelessWidget {
                 );
               },
             ),
+            RaisedButton(
+              child: Text("话框（复选框可点击）"),
+              onPressed: () async {
+                //弹出删除确认对话框，等待用户确认
+                bool deleteTree = await showDeleteConfirmDialog4(context);
+                if (deleteTree == null) {
+                  print("取消删除");
+                } else {
+                  print("同时删除子目录: $deleteTree");
+                }
+              },
+            ),
+            RaisedButton(
+              child: Text("显示底部菜单列表"),
+              onPressed: () async {
+                int type = await _showModalBottomSheet(context);
+                print(type);
+              },
+            ),
+            RaisedButton(
+              child: Text("显示底部菜单列表2"),
+              onPressed: () {
+                _showBottomSheet(context);
+              },
+            ),
+            RaisedButton(
+              child: Text("显示Loading框"),
+              onPressed: () {
+                showLoadingDialog1(context);
+              },
+            ),
+            RaisedButton(
+              child: Text("显示自定义大小Loading框"),
+              onPressed: () {
+                showLoadingDialog2(context);
+              },
+            ),
+            RaisedButton(
+              child: Text("日历选择框"),
+              onPressed: () {
+                _showDatePicker1(context);
+              },
+            ),
+            RaisedButton(
+              child: Text("IOS风格日历选择框"),
+              onPressed: () {
+                _showDatePicker2(context);
+              },
+            ),
           ],
         )
     );
@@ -2783,4 +2891,462 @@ Widget _buildMaterialDialogTransitions(
     ),
     child: child,
   );
+}
+
+Future<bool> showDeleteConfirmDialog4(BuildContext context) {
+  bool _withTree = false;
+
+  return showDialog<bool>(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        title: Text("提示"),
+        content: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Text("您确定要删除当前文件吗?"),
+            Row(
+              children: <Widget>[
+                Text("同时删除子目录?"),
+                Builder(
+                  builder: (BuildContext context) {
+                    return Checkbox(
+                      value: _withTree,
+                      onChanged: (bool value) {
+                        (context as Element).markNeedsBuild();
+                        _withTree = !_withTree;
+                      },
+                    );
+                  },
+                ),
+                /*Checkbox(
+                  value: _withTree,
+                  onChanged: (bool value) {
+                    (context as Element).markNeedsBuild();
+                    _withTree = !_withTree;
+                  },
+                ),*/
+              ],
+            ),
+          ],
+        ),
+        actions: <Widget>[
+          FlatButton(
+            child: Text("取消"),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+          FlatButton(
+            child: Text("删除"),
+            onPressed: () {
+              Navigator.of(context).pop(_withTree);
+            },
+          )
+        ],
+      );
+    }
+  );
+}
+
+Future<int> _showModalBottomSheet(BuildContext context) {
+  return showModalBottomSheet<int>(
+    context: context,
+    builder: (BuildContext context) {
+      return ListView.builder(
+          itemCount: 30,
+          itemBuilder: (BuildContext context, int index) {
+            return ListTile(
+              title: Text("$index"),
+              onTap: () => Navigator.of(context).pop(index),
+            );
+          }
+      );
+    }
+  );
+}
+
+PersistentBottomSheetController<int> _showBottomSheet(BuildContext context) {
+  return showBottomSheet<int>(
+    context: context,
+    builder: (BuildContext context) {
+      return ListView.builder(
+        itemCount: 30,
+        itemBuilder: (BuildContext context, int index) {
+          return ListTile(
+            title: Text("$index"),
+            onTap: () {
+              print("$index");
+              Navigator.of(context).pop();
+            },
+          );
+        },
+      );
+    }
+  );
+}
+
+showLoadingDialog1(BuildContext context) {
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (context) {
+      return AlertDialog(
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            CircularProgressIndicator(),
+            Padding(
+              padding: EdgeInsets.only(top: 26),
+              child: Text("正在加载，请稍后..."),
+            )
+          ],
+        ),
+      );
+    }
+  );
+}
+
+showLoadingDialog2(BuildContext context) {
+  showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return UnconstrainedBox(
+          constrainedAxis: Axis.vertical,
+          child: SizedBox(
+            width: 280,
+            child: AlertDialog(
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  CircularProgressIndicator(value: 0.8),
+                  Padding(
+                    padding: EdgeInsets.only(top: 26),
+                    child: Text("正在加载，请稍后..."),
+                  )
+                ],
+              ),
+            ),
+          ),
+        );
+      }
+  );
+}
+
+Future<DateTime> _showDatePicker1(BuildContext context) {
+  var date = DateTime.now();
+  return showDatePicker(
+      context: context,
+      initialDate: date,
+      firstDate: date,
+      lastDate: date.add(Duration(days: 30)),
+  );
+}
+
+Future<DateTime> _showDatePicker2(BuildContext context) {
+  var date = DateTime.now();
+  return showCupertinoModalPopup(
+      context: context,
+      builder: (ctx) {
+        return SizedBox(
+          height: 200,
+          child: CupertinoDatePicker(
+            mode: CupertinoDatePickerMode.dateAndTime,
+            minimumDate: date,
+            maximumDate: date.add(Duration(days: 30)),
+            maximumYear: date.year + 1,
+            onDateTimeChanged: (DateTime value) {
+              print(value);
+            },
+          ),
+        );
+      }
+  );
+}
+
+class GestureDetectorTestRoute extends StatefulWidget {
+  @override
+  _GestureDetectorTestRouteState createState() => new _GestureDetectorTestRouteState();
+}
+
+class _GestureDetectorTestRouteState extends State<GestureDetectorTestRoute> {
+  String _operation = "No Gesture detected!";
+
+  @override
+  Widget build(BuildContext context) {
+    // TODO: implement build
+
+    return Scaffold(
+        appBar: AppBar(
+          title: Text("Gesture Detector"),
+        ),
+        body: Center(
+          child: GestureDetector(
+            child: Container(
+              alignment: Alignment.center,
+              color: Colors.blue,
+              width: 200.0,
+              height: 100.0,
+              child: Text(_operation, style: TextStyle(color: Colors.white)),
+            ),
+            onTap: () => updateText("Tap"),
+            onDoubleTap: () => updateText("DoubleTap"),
+            onLongPress: () => updateText("LongPress"),
+          ),
+        ),
+    );
+  }
+
+  void updateText(String text) {
+    setState(() {
+      _operation = text;
+    });
+  }
+}
+
+class _Drag extends StatefulWidget {
+  @override
+  _DragState createState() => new _DragState();
+}
+
+class _DragState extends State<_Drag> with SingleTickerProviderStateMixin {
+  double _top = 0.0;
+  double _left = 0.0;
+  
+  @override
+  Widget build(BuildContext context) {
+    // TODO: implement build
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("拖动 任意方向"),
+      ),
+      body: Stack(
+        children: <Widget>[
+          Positioned(
+            top: _top,
+            left: _left,
+            child: GestureDetector(
+              child: CircleAvatar(child: Text('A')),
+              onPanDown: (DragDownDetails e) {
+                print("用户手指按下：${e.globalPosition}");
+              },
+              onPanUpdate: (DragUpdateDetails e) {
+                setState(() {
+                  _left += e.delta.dx;
+                  _top += e.delta.dy;
+                });
+              },
+              onPanEnd: (DragEndDetails e) {
+                print(e.velocity);
+              },
+            ),
+          )
+        ],
+      )
+    );
+  }
+}
+
+class _DragVertical extends StatefulWidget {
+  @override
+  _DragVerticalState createState() => new _DragVerticalState();
+}
+
+class _DragVerticalState extends State<_DragVertical> {
+  double _top = 0.0;
+
+  @override
+  Widget build(BuildContext context) {
+    // TODO: implement build
+
+    return Scaffold(
+        appBar: AppBar(
+          title: Text("拖动 单一方向"),
+        ),
+        body: Stack(
+          children: <Widget>[
+            Positioned(
+              top: _top,
+              child: GestureDetector(
+                child: CircleAvatar(child: Text('A')),
+                onVerticalDragUpdate: (DragUpdateDetails e) {
+                  setState(() {
+                    _top += e.delta.dy;
+                  });
+                },
+              ),
+            )
+          ],
+        )
+    );
+  }
+}
+
+class _ScaleTestRoute extends StatefulWidget {
+  @override
+  _ScaleTestRouteState createState() => new _ScaleTestRouteState();
+}
+
+class _ScaleTestRouteState extends State<_ScaleTestRoute> {
+  double _width = 200.0;
+
+  @override
+  Widget build(BuildContext context) {
+    // TODO: implement build
+    return Scaffold(
+        appBar: AppBar(
+          title: Text("缩放"),
+        ),
+        body: Center(
+          child: GestureDetector(
+            child: Image.network(
+              "https://avatars2.githubusercontent.com/u/20411648?s=460&v=4",
+              width: _width,
+              ),
+            onScaleUpdate: (ScaleUpdateDetails details) {
+              _width = 200 * details.scale.clamp(0.8, 10.0);
+            },
+          ),
+        )
+    );
+  }
+}
+
+class _GestureRecognizerTestRoute extends StatefulWidget {
+  @override
+  _GestureRecognizerTestRouteState createState() => new _GestureRecognizerTestRouteState();
+}
+
+class _GestureRecognizerTestRouteState extends State<_GestureRecognizerTestRoute> {
+
+  TapGestureRecognizer _tapGestureRecognizer = new TapGestureRecognizer();
+  bool _toggle = false; //变色开关
+
+  @override
+  void dispose() {
+    _tapGestureRecognizer.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // TODO: implement build
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("手势识别器"),
+      ),
+      body: Center(
+        child: Text.rich(
+          TextSpan(
+            children: [
+              TextSpan(text: "你好世界"),
+              TextSpan(text: "点我变色",
+                style: TextStyle(
+                  fontSize: 30.0,
+                  color: _toggle ? Colors.blue : Colors.red
+                ),
+                recognizer: _tapGestureRecognizer
+                  ..onTap = () {
+                    setState(() {
+                      _toggle = !_toggle;
+                    });
+                  },
+              ),
+
+              TextSpan(
+                text: "你好世界"
+              )
+            ]
+          )
+        ),
+      ),
+    );
+  }
+}
+
+class BothDirectionTestRoute extends StatefulWidget {
+  @override
+  BothDirectionTestRouteState createState() =>
+      new BothDirectionTestRouteState();
+}
+
+class BothDirectionTestRouteState extends State<BothDirectionTestRoute> {
+  double _top = 0.0;
+  double _left = 0.0;
+
+  @override
+  Widget build(BuildContext context) {
+    // TODO: implement build
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("手势识别器"),
+      ),
+      body: Stack(
+        children: <Widget>[
+          Positioned(
+            top: _top,
+            left: _left,
+            child: GestureDetector(
+              child: CircleAvatar(child: Text("A")),
+              //垂直方向拖动事件
+              onVerticalDragUpdate: (DragUpdateDetails details) {
+                setState(() {
+                  _top += details.delta.dy;
+                });
+              },
+              onHorizontalDragUpdate: (DragUpdateDetails details) {
+                setState(() {
+                  _left += details.delta.dx;
+                });
+              },
+            ),
+          )
+        ],
+      )
+    );
+  }
+}
+
+class GestureConflictTestRoute extends StatefulWidget {
+  @override
+  GestureConflictTestRouteState createState() =>
+      new GestureConflictTestRouteState();
+}
+
+class GestureConflictTestRouteState extends State<GestureConflictTestRoute> {
+  double _left = 0.0;
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        appBar: AppBar(
+          title: Text("手势识别器"),
+        ),
+        body: Stack(
+          children: <Widget>[
+            Positioned(
+              left: _left,
+              child: GestureDetector(
+                child: CircleAvatar(child: Text("A")), //要拖动和点击的widget
+                onHorizontalDragUpdate: (DragUpdateDetails details) {
+                  setState(() {
+                    _left += details.delta.dx;
+                  });
+                },
+                onHorizontalDragEnd: (details){
+                  print("onHorizontalDragEnd");
+                },
+                onTapDown: (details){
+                  print("down");
+                },
+                onTapUp: (details){
+                  print("up");
+                },
+              ),
+            )
+          ],
+        )
+    );
+
+  }
 }
