@@ -67,6 +67,10 @@ class MyApp extends StatelessWidget {
         "gesture_recognizer":(context) => _GestureRecognizerTestRoute(),
         "both_direction":(context) => BothDirectionTestRoute(),
         "gesture_conflict":(context) => GestureConflictTestRoute(),
+        "notification_test":(context) => NotificationRoute(),
+        "scale_animation":(context) => ScaleAnimationRoute(),
+        "scale_animation_better":(context) => ScaleAnimationRoute1(),
+        "stagger_animation":(context) => StaggerRoute(),
       },
 
     );
@@ -516,7 +520,7 @@ class _ThirdPage extends State<ThirdPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Scrollbar(
+      body: SingleChildScrollView(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
@@ -609,6 +613,35 @@ class _ThirdPage extends State<ThirdPage> {
               textColor: Colors.blue,
               onPressed: () {
                 Navigator.of(context).pushNamed("gesture_conflict");
+              },
+            ),
+            FlatButton(
+              child: Text("通知"),
+              textColor: Colors.blue,
+              onPressed: () {
+                Navigator.of(context).pushNamed("notification_test");
+              },
+            ),
+            FlatButton(
+              child: Text("动画"),
+              textColor: Colors.blue,
+              onPressed: () {
+                Navigator.of(context).pushNamed("scale_animation");
+              },
+            ),
+            FlatButton(
+              child: Text("动画优化"),
+              textColor: Colors.blue,
+              onPressed: () {
+                Navigator.of(context).pushNamed("scale_animation_better");
+              },
+            ),
+            HeroAnimationRoute(),
+            FlatButton(
+              child: Text("交织动画"),
+              textColor: Colors.blue,
+              onPressed: () {
+                Navigator.of(context).pushNamed("stagger_animation");
               },
             ),
           ],
@@ -3348,5 +3381,358 @@ class GestureConflictTestRouteState extends State<GestureConflictTestRoute> {
         )
     );
 
+  }
+}
+
+class MyNotification extends Notification {
+  MyNotification(this.msg);
+  final String msg;
+}
+
+class NotificationRoute extends StatefulWidget {
+  @override
+  NotificationRouteState createState() {
+    return new NotificationRouteState();
+  }
+}
+
+class NotificationRouteState extends State<NotificationRoute> {
+  String _msg = "";
+
+  @override
+  Widget build(BuildContext context) {
+    // TODO: implement build
+    return NotificationListener<MyNotification>(
+      onNotification: (notification) {
+        setState(() {
+          _msg += notification.msg + " ";
+        });
+        return true;
+      },
+      child: Scaffold(
+          appBar: AppBar(
+            title: Text("Notification"),
+          ),
+          body: Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                Builder(
+                  builder: (context) {
+                    return RaisedButton(
+                      onPressed: () => MyNotification("Hi").dispatch(context),
+                      child: Text("Send Notification"),
+                    );
+                  },
+                ),
+                Text(_msg),
+              ],
+            ),
+          )
+      )
+    );
+  }
+}
+
+class ScaleAnimationRoute extends StatefulWidget {
+  @override
+  _ScaleAnimationRouteState createState() => new _ScaleAnimationRouteState();
+}
+
+class _ScaleAnimationRouteState extends State<ScaleAnimationRoute> with SingleTickerProviderStateMixin {
+
+  Animation<double> animation;
+  AnimationController controller;
+  
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    controller = new AnimationController(
+        duration: const Duration(seconds: 3),
+        vsync: this);
+
+    animation = CurvedAnimation(parent: controller, curve: Curves.bounceIn);
+
+    animation = new Tween(begin: 0.0, end: 300.0).animate(animation)
+      ..addListener(() {
+        setState(() {
+        });
+      });
+
+    controller.forward();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // TODO: implement build
+    return Scaffold(
+        appBar: AppBar(
+          title: Text("动画"),
+        ),
+        body: Center(
+          child: GestureDetector(
+            child: Image.network(
+              "https://avatars2.githubusercontent.com/u/20411648?s=460&v=4",
+              width: animation.value,
+              height: animation.value,
+            ),
+          ),
+        )
+    );
+  }
+
+  dispose() {
+    controller.dispose();
+    super.dispose();
+  }
+}
+
+class AnimatedImage extends AnimatedWidget {
+  AnimatedImage({Key key, Animation<double> animation}) : super(key: key, listenable: animation);
+
+  @override
+  Widget build(BuildContext context) {
+    final Animation<double> animation = listenable;
+    // TODO: implement build
+    return AnimatedBuilder(
+      animation: animation,
+      child: Image.network(
+        "https://avatars2.githubusercontent.com/u/20411648?s=460&v=4",
+      ),
+      builder: (BuildContext ctx, Widget child) {
+        return new Center(
+          child: Container(
+            height: animation.value,
+            width: animation.value,
+            child: child,
+          ),
+        );
+      },
+    );
+  }
+}
+
+class ScaleAnimationRoute1 extends StatefulWidget {
+  @override
+  _ScaleAnimationRouteState1 createState() => new _ScaleAnimationRouteState1();
+}
+
+class _ScaleAnimationRouteState1 extends State<ScaleAnimationRoute1>
+    with SingleTickerProviderStateMixin {
+
+  Animation<double> animation;
+  AnimationController controller;
+
+  initState() {
+    super.initState();
+    controller = new AnimationController(
+        duration: const Duration(seconds: 3), vsync: this);
+    //图片宽高从0变到300
+    animation = new Tween(begin: 0.0, end: 300.0).animate(controller);
+    //启动动画
+
+    animation.addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        controller.reverse();
+      } else if (status == AnimationStatus.dismissed) {
+        controller.forward();
+      }
+    });
+
+    controller.forward();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        appBar: AppBar(
+          title: Text("动画"),
+        ),
+        body: Center(
+            child: AnimatedImage(animation: animation)
+        )
+    );
+  }
+
+  dispose() {
+    //路由销毁时需要释放动画资源
+    controller.dispose();
+    super.dispose();
+  }
+}
+
+class HeroAnimationRoute extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    // TODO: implement build
+    return Container(
+      alignment: Alignment.topCenter,
+      child: InkWell(
+        child: Hero(
+          tag: "avatar",
+          child: Image.network(
+            "https://avatars2.githubusercontent.com/u/20411648?s=460&v=4",
+            width: 50.0,
+          ),
+        ),
+        onTap: () {
+          Navigator.push(context, PageRouteBuilder(
+            pageBuilder: (BuildContext context, Animation animation,
+              Animation secondaryAnimation) {
+
+              return new FadeTransition(
+                opacity: animation,
+                child: Scaffold(
+                  appBar: AppBar(title: Text("原图")),
+                  body: HeroAnimationRouteB(),
+                ),
+              );
+            }
+          ));
+        },
+      ),
+    );
+  }
+}
+
+class HeroAnimationRouteB extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    // TODO: implement build
+    return Center(
+      child: Hero(
+        tag: "avatar",
+        child: Image.network(
+          "https://avatars2.githubusercontent.com/u/20411648?s=460&v=4",
+        ),
+      ),
+    );
+  }
+}
+
+class StaggerAnimation extends StatelessWidget {
+  StaggerAnimation({Key key, this.controller}) : super(key: key) {
+    height = Tween<double>(
+      begin: 0.0,
+      end: 300.0,
+    ).animate(
+      CurvedAnimation(
+        parent: controller,
+        curve: Interval(
+          0.0, 0.6,
+          curve: Curves.ease,
+        )
+      )
+    );
+
+    color = ColorTween(
+      begin: Colors.green,
+      end: Colors.red,
+    ).animate(
+        CurvedAnimation(
+          parent: controller,
+          curve: Interval(
+            0.0, 0.6,
+            curve: Curves.ease,
+          )
+        )
+    );
+
+    padding = Tween<EdgeInsets>(
+      begin: EdgeInsets.only(left: 0.0),
+      end: EdgeInsets.only(left: 100.0),
+    ).animate(
+      CurvedAnimation(
+        parent: controller,
+        curve: Interval(
+          0.6, 1.0,
+          curve: Curves.ease,
+        )
+      )
+    );
+  }
+
+  final Animation<double> controller;
+  Animation<double> height;
+  Animation<EdgeInsets> padding;
+  Animation<Color> color;
+
+  Widget _buildAnimation(BuildContext context, Widget child) {
+    return Container(
+      alignment: Alignment.bottomCenter,
+      padding: padding.value,
+      child: Container(
+        color: color.value,
+        width: 50.0,
+        height: height.value,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // TODO: implement build
+    return AnimatedBuilder(
+      builder: _buildAnimation,
+      animation: controller,
+    );
+  }
+}
+
+class StaggerRoute extends StatefulWidget {
+  @override
+  _StaggerRouteState createState() => _StaggerRouteState();
+}
+
+class _StaggerRouteState extends State<StaggerRoute> with TickerProviderStateMixin {
+  AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 2000),
+      vsync: this,
+    );
+  }
+
+  Future<Null> _playAnimation() async {
+    try {
+      await _controller.forward().orCancel;
+      await _controller.reverse().orCancel;
+    } on TickerCanceled {
+
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // TODO: implement build
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("交织动画"),
+      ),
+      body: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () {
+          _playAnimation();
+        },
+        child: Center(
+          child: Container(
+            width: 300.0,
+            height: 300.0,
+            decoration: BoxDecoration(
+              color: Colors.black.withOpacity(0.1),
+              border: Border.all(
+                color: Colors.black.withOpacity(0.5),
+              )
+            ),
+            child: StaggerAnimation(controller: _controller),
+          ),
+        ),
+      ),
+    );
   }
 }
