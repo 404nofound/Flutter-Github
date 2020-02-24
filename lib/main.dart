@@ -94,7 +94,7 @@ class _MyHomePageState extends State<MyHomePage> {
               PageInfo("路由传值", (ctx) => RouterTestRoute()),
             ]),
           ),
-          /*ExpansionTile(
+          ExpansionTile(
             title: Text("基础组件"),
             children: _generateItem(context, [
               PageInfo("Context测试", (ctx) => ContextRoute(), withScaffold: false),
@@ -107,7 +107,7 @@ class _MyHomePageState extends State<MyHomePage> {
               PageInfo("进度条", (ctx) => ProgressRoute()),
             ]),
           ),
-          ExpansionTile(
+          /*ExpansionTile(
             title: Text("布局类组件"),
             children: _generateItem(context, [
               PageInfo("Column居中", (ctx) => CenterColumnRoute()),
