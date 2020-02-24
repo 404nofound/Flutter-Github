@@ -107,7 +107,7 @@ class _MyHomePageState extends State<MyHomePage> {
               PageInfo("进度条", (ctx) => ProgressRoute()),
             ]),
           ),
-          /*ExpansionTile(
+          ExpansionTile(
             title: Text("布局类组件"),
             children: _generateItem(context, [
               PageInfo("Column居中", (ctx) => CenterColumnRoute()),
@@ -124,7 +124,7 @@ class _MyHomePageState extends State<MyHomePage> {
               PageInfo("Scaffold、TabBar、底部导航", (ctx) => ScaffoldRoute(), withScaffold: false),
             ]),
           ),
-          ExpansionTile(
+          /*ExpansionTile(
             title: Text("功能性组件"),
             children: _generateItem(context, [
               PageInfo("数据共享(inheritedWidget)",
