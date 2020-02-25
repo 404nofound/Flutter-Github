@@ -124,7 +124,7 @@ class _MyHomePageState extends State<MyHomePage> {
               PageInfo("Scaffold、TabBar、底部导航", (ctx) => ScaffoldRoute(), withScaffold: false),
             ]),
           ),
-          /*ExpansionTile(
+          ExpansionTile(
             title: Text("功能性组件"),
             children: _generateItem(context, [
               PageInfo("数据共享(inheritedWidget)",
@@ -139,7 +139,7 @@ class _MyHomePageState extends State<MyHomePage> {
               PageInfo("对话框", (ctx) => DialogRoute()),
             ]),
           ),
-          ExpansionTile(
+          /*ExpansionTile(
             title: Text("事件处理与通知"),
             children: _generateItem(context, [
               PageInfo("原生指针事件", (ctx) => PointerRoute()),
