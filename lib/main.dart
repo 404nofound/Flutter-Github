@@ -139,7 +139,7 @@ class _MyHomePageState extends State<MyHomePage> {
               PageInfo("对话框", (ctx) => DialogRoute()),
             ]),
           ),
-          /*ExpansionTile(
+          ExpansionTile(
             title: Text("事件处理与通知"),
             children: _generateItem(context, [
               PageInfo("原生指针事件", (ctx) => PointerRoute()),
@@ -167,7 +167,7 @@ class _MyHomePageState extends State<MyHomePage> {
               PageInfo("图片加载原理与缓存", (ctx) => ImageInternalTestRoute()),
             ]),
           ),
-          ExpansionTile(
+          /*ExpansionTile(
             title: Text("动画"),
             children: _generateItem(context, [
               PageInfo("放大动画-原始版", (ctx) => ScaleAnimationRoute()),
