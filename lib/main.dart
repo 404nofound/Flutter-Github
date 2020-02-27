@@ -1,36 +1,61 @@
-import 'package:dio/dio.dart';
-import 'package:dio_cookie_manager/dio_cookie_manager.dart';
-import 'package:cookie_jar/cookie_jar.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_study/widgets/page_scaffold.dart';
-import 'index.dart';
+import 'dart:async';
 
+import 'package:camera/camera.dart';
+import 'package:cookie_jar/cookie_jar.dart';
+import 'package:dio_cookie_manager/dio_cookie_manager.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'i10n/localization_intl.dart';
+import 'widgets/index.dart';
+import 'routes/index.dart';
+import 'package:dio/dio.dart';
 import 'http.dart';
+import 'common.dart';
 
 void main() async {
-  //dio.interceptors..add(CookieManager(CookieJar()))..add(LogInterceptor());
-
+  dio.interceptors..add(CookieManager(CookieJar()))..add(LogInterceptor());
   runApp(MyApp());
-
+  cameras = await availableCameras();
+  PaintingBinding.instance.imageCache.maximumSize = 2000; //最多2000张
+  PaintingBinding.instance.imageCache.maximumSizeBytes = 200 << 20; //200 M
 
 }
 
 class MyApp extends StatelessWidget {
+  // This widget is the root of your application.
+
   @override
   Widget build(BuildContext context) {
-    // TODO: implement build
-    /*MaterialApp(
+    MaterialApp(
       onGenerateTitle: (context) {
-
+        return DemoLocalizations.of(context).title;
       },
-    );*/
+      localizationsDelegates: [
+        // 本地化的代理类
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        DemoLocalizationsDelegate()
+      ],
+    );
+
     return MaterialApp(
-      title: "Flutter Demo",
+      title: 'Flutter Demo',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
+      localizationsDelegates: [
+        // 本地化的代理类
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        DemoLocalizationsDelegate()
+      ],
+      supportedLocales: [
+        const Locale('en', 'US'), // 美国英语
+        const Locale('zh', 'CN'), // 中文简体
+      ],
       onGenerateRoute: (RouteSettings settings) {
         if (settings.name == "tip") {
           return MaterialPageRoute(builder: (context) {
@@ -40,7 +65,9 @@ class MyApp extends StatelessWidget {
         return null;
       },
       routes: {
-        "tip2": (context) => TipRoute(text: ModalRoute.of(context).settings.arguments),
+        "tip2": (context) {
+          return TipRoute(text: ModalRoute.of(context).settings.arguments);
+        }, //注册首页路由
       },
       home: MyHomePage(),
     );
@@ -83,8 +110,7 @@ class _MyHomePageState extends State<MyHomePage> {
     // TODO: implement build
     return Scaffold(
       appBar: AppBar(
-        //title: Text(DemoLocalizations.of(context).title),
-        title: Text("DEMOXXXX"),
+        title: Text(DemoLocalizations.of(context).title),
       ),
       body: ListView(
         children: <Widget>[
@@ -167,7 +193,7 @@ class _MyHomePageState extends State<MyHomePage> {
               PageInfo("图片加载原理与缓存", (ctx) => ImageInternalTestRoute()),
             ]),
           ),
-          /*ExpansionTile(
+          ExpansionTile(
             title: Text("动画"),
             children: _generateItem(context, [
               PageInfo("放大动画-原始版", (ctx) => ScaleAnimationRoute()),
@@ -194,7 +220,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   "PlatformView示例（webview）", (ctx) => PlatformViewRoute(),
                   padding: false),
             ]),
-          ),*/
+          ),
         ],
       ),
     );
